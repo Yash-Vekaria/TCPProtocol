@@ -13,3 +13,20 @@ sudo tc qdisc add dev lo root handle 1: tbf rate 1000kbit buffer
 # transmit the bursts at a peakrate (rate at which buffer empties) of 1001kbit and minimum burst (buffer) of 1550 bytes to be sent at maximum rate, so a typical packet can be sent at once (MTU = 1500).
 # ref: https://man7.org/linux/man-pages/man8/tc-tbf.8.html
 10000000 limit 500000000 peakrate 1001kbit minburst 1550
+
+# delay packets from a uniform distribution with 100ms +- 10ms (i.e., 90ms-110ms) using netem (network emulation)
+sudo tc qdisc add dev lo parent 1:1 handle 10: netem delay 100ms 10ms
+
+echo "entering loop"
+while :
+do
+	echo "500kbps for 5 seconds"
+	sudo tc qdisc change dev lo root tbf rate 500kbit buffer 10000000 limit 500000000 peakrate 501kbit minburst 1550
+	sleep 5
+	echo "1000kbps for 10 seconds"
+	sudo tc qdisc change dev lo root tbf rate 1000kbit buffer 10000000 limit 500000000 peakrate 1001kbit minburst 1550
+	sleep 10
+	echo "700kbps for 5 seconds"
+	sudo tc qdisc change dev lo root tbf rate 700kbit buffer 10000000 limit 500000000 peakrate 701kbit minburst 1550
+	sleep 5
+done
