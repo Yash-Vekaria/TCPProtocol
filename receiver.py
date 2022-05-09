@@ -50,17 +50,18 @@ while True:
             sent_acknowledgements.append(int(highest_cumulative_sequence))
             sock.sendto(str(highest_cumulative_sequence).encode(), sender_address)
         else:
-            unacknowledged_sequences = sorted(list(set(range(1, int(highest_cumulative_sequence)+1)).difference(set(sent_acknowledgements).union(set(received_sequences)))))
-            if int(unacknowledged_sequences[0]) < int(highest_cumulative_sequence):
-                unacknowledged_sequences = sorted(list(set(unacknowledged_sequences).difference(set(received_sequences))))
-                if unacknowledged_sequences[1] - unacknowledged_sequences[0] == 1:
-                    print("Sending Acknowledgement #", int(unacknowledged_sequences[0]))
-                    sent_acknowledgements.append(int(unacknowledged_sequences[0]))
-                    sock.sendto(str(int(unacknowledged_sequences[0])).encode(), sender_address)
-                else
-                    print("Sending Acknowledgement #", int(unacknowledged_sequences[1]))
-                    sent_acknowledgements.append(int(unacknowledged_sequences[1]))
-                    sock.sendto(str(int(unacknowledged_sequences[1])).encode(), sender_address)
+            unacknowledged_sequences = sorted(list(set(range(1, int(highest_cumulative_sequence)+1)).difference(set(sent_acknowledgements))))
+            if len(unacknowledged_sequences) != 0:
+                if int(unacknowledged_sequences[0]) < int(highest_cumulative_sequence):
+                    temp_sequences = sorted(list(set(unacknowledged_sequences).difference(set(received_sequences))))
+                    if temp_sequences[1] - temp_sequences[0] == 1:
+                        print("Sending Acknowledgement #", int(temp_sequences[0]))
+                        sent_acknowledgements.append(int(temp_sequences[0]))
+                        sock.sendto(str(int(temp_sequences[0])).encode(), sender_address)
+                    else:
+                        print("Sending Acknowledgement #", int(unacknowledged_sequences[0]))
+                        sent_acknowledgements.append(int(unacknowledged_sequences[0]))
+                        sock.sendto(str(int(unacknowledged_sequences[0])).encode(), sender_address)
             else:
                 print("Sending Acknowledgement #", seq)
                 sent_acknowledgements.append(int(seq))      
@@ -73,7 +74,7 @@ while True:
         sent_acknowledgements.append(int(pointer[0] - 1))
         sock.sendto(str(pointer[0] - 1).encode(), sender_address)
         # Checks if current sequence number is higher than the highest sequence number already receives? Updates if it is
-        if int(seq) > highest_cumulative_sequence:
+        if int(seq) > int(highest_cumulative_sequence):
             highest_cumulative_sequence = seq
     
     # Removing the received sequence number from pointer list
