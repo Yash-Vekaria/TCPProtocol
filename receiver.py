@@ -8,8 +8,8 @@ import re
 IP_ADDRESS = ""
 # Port number on localhost on which receiver runs
 PORT = 5005
-# Size of the BUFFER_SIZEfer, defining the maximum data that can be BUFFER_SIZEfered for transmission at a time
-BUFFER_SIZEFER_SIZE = 1500
+# Size of the buffer, defining the maximum data that can be buffered for transmission at a time
+BUFFER_SIZE = 1500
 # Window size at the receiver (practically very large)
 RWND = 1000000
 
@@ -19,7 +19,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Binding the Socket to specified IP address and Port
 sock.bind((IP_ADDRESS, PORT))
 
-# Implements cumulative acknowledgement by maintaining the last consecutive sequence received at position 0
+# Implements cumulative acknowledgement by maintaining the next sequence it expects at position 0. It removes all recived sequences.
 pointer = list(range(1, int(RWND)+1))
 
 # Receiver keeps running indefinitely to receive the data
@@ -46,6 +46,7 @@ while True:
         print("Sending Acknowledgement #", pointer[0] - 1)
         sock.sendto(str(pointer[0] - 1).encode(), sender_address)
     
+    # Removing the received sequence number from pointer list
     if int(seq) in pointer:
         pointer.remove(int(seq))
     
