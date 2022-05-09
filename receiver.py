@@ -14,19 +14,12 @@ BUFFER_SIZEFER_SIZE = 1500
 RWND = 1000000
 
 
-
 # Instatiating a UDP Socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Binding the Socket to specified IP address and Port
 sock.bind((IP_ADDRESS, PORT))
 
-
-# received_sequences to implement cumulative acknowledgement
-received_sequences = []
-
-
-check = list(range(1, int(RWND)+1))
-# Maintains the last consecutive sequence received at position 0
+# Implements cumulative acknowledgement by maintaining the last consecutive sequence received at position 0
 pointer = list(range(1, int(RWND)+1))
 
 # Receiver keeps running indefinitely to receive the data
@@ -46,20 +39,15 @@ while True:
 
     if int(seq) == int(pointer[0]):
         print("Sending Acknowledgement #", seq)
-        received_sequences.append(seq)
         sock.sendto(seq.encode(), sender_address)
-        if int(seq) in check:
-            check.remove(int(seq))
-            pointer.remove(int(seq))
     else:
         # Else handles the case when a packet is lost. 
         # In such case, the sequence number of last continuous packet received is sent
         print("Sending Acknowledgement #", pointer[0] - 1)
-        received_sequences.append(seq)
         sock.sendto(str(pointer[0] - 1).encode(), sender_address)
-        if int(seq) in check:
-            check.remove(int(seq))
-            pointer.remove(int(seq))
+    
+    if int(seq) in pointer:
+        pointer.remove(int(seq))
     
     # Terminates further receiving if the RWND is reached
     if len(pointer) == 0:
