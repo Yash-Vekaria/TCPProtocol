@@ -44,11 +44,13 @@ while True:
 			raise TypeError("Error: Sequence Number is not a Non-Negative Integer!")
 
 		# If sequence number received is correct, generate the acknowledgement
-		received_sequences[i] = 1
+		# Set current received sequence to 1
+		received_sequences[seq] = 1
 
 		for i in range(1, RWND+1):
 			if received_sequences[i] == 0:
 				acknowledgement_number = i-1
+				break
 
 	# Handling the Issue with Sequence Numbers
 	except BaseException:
