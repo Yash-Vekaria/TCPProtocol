@@ -39,16 +39,16 @@ while True:
 	try:
 		seq = int(packet_data.decode().split("|")[0])
 		if not(type(seq) is int):
-  			raise TypeError("Error: Sequence Number is not an Integer!")
-  		elif seq < 0:
-	  		raise TypeError("Error: Sequence Number is not a Non-Negative Integer!")
+			raise TypeError("Error: Sequence Number is not an Integer!")
+		elif seq < 0:
+			raise TypeError("Error: Sequence Number is not a Non-Negative Integer!")
 
-	  	# If sequence number received is correct, generate the acknowledgement
-	  	received_sequences[i] = 1
+		# If sequence number received is correct, generate the acknowledgement
+		received_sequences[i] = 1
 
-	  	for i in range(1, RWND+1):
-	  		if received_sequences[i] == 0:
-	  			acknowledgement_number = i-1
+		for i in range(1, RWND+1):
+			if received_sequences[i] == 0:
+				acknowledgement_number = i-1
 
 	# Handling the Issue with Sequence Numbers
 	except BaseException:
