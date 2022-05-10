@@ -15,75 +15,51 @@ RWND = 1000000
 
 
 # Instatiating a UDP Socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+receiver_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Binding the Socket to specified IP address and Port
-sock.bind((IP_ADDRESS, PORT))
+receiver_socket.bind((IP_ADDRESS, PORT))
 
-# Implements cumulative acknowledgement by maintaining the next sequence it expects at position 0. It removes all recived sequences.
-pointer = list(range(1, int(RWND)+1))
-# Maintains the highest sequence number received
-highest_cumulative_sequence = 1
-# List containing sequence of acknowledgements that are sent to the send
-sent_acknowledgements = []
-# List containing sequence numbers that are unacknowledged including those that are not received)
-unacknowledged_sequences = []
-# List containing sequence numbers that are received by the receiver
-received_sequences = []
+# List maintaining sequence numbers that are received by the receiver
+received_sequences = [0] * (RWND+1)
+received_sequences[0] = 1
+
+# Variable to maintain acknowledgement number of the received packets
+acknowledgement_number = -1
 
 # Receiver keeps running indefinitely to receive the data
 while True:
 
+	# Inititalising exception flag to handle the Sequence Number Exception.
+	exception_flag = False
+
 	# Receiving the packet from the sender
-	packet_data, sender_address = sock.recvfrom(BUFFER_SIZE)
+	packet_data, sender_address = receiver_socket.recvfrom(BUFFER_SIZE)
 
 	# Extracting the sequence number
 	try:
-		seq = re.search('Sequence Number: (.*)\r\n\r\n', packet_data.decode()).group(1)
-	except AttributeError:
-		seq = re.search('Sequence Number: (.*)\r\n\r\n', packet_data.decode())
-	finally:
-		print("Received sequence number:", seq)
+		seq = int(packet_data.decode().split("|")[0])
+		if not(type(seq) is int):
+  			raise TypeError("Error: Sequence Number is not an Integer!")
+  		elif seq < 0:
+	  		raise TypeError("Error: Sequence Number is not a Non-Negative Integer!")
 
-	# Checking if received seq matches the next expected sequence
-	if int(seq) == int(pointer[0]):
+	  	# If sequence number received is correct, generate the acknowledgement
+	  	received_sequences[i] = 1
 
-		# This condition will be true only when inclusion of current seq being received makes all sequences uptil highest_cumulative_sequence as received 
-		if int(highest_cumulative_sequence) + 1 == pointer[1]:
-			acknowledgement_number = int(highest_cumulative_sequence)
-		else:
-			# Computing sequence number within the range of highest_cumulative_sequence that are unacknowledged and unreceived
-			unacknowledged_sequences = sorted(list(set(range(1, int(highest_cumulative_sequence)+1)).difference(set(sent_acknowledgements))))
-            # Computing sequence number within the range of highest_cumulative_sequence that are received but unacknowledged
-            temp_sequences = sorted(list(set(unacknowledged_sequences).difference(set(received_sequences))))
-            
-            if len(unacknowledged_sequences) != 0 and len(temp_sequences) != 0:
-				if int(unacknowledged_sequences[0]) < int(highest_cumulative_sequence):
-					if temp_sequences[1] - temp_sequences[0] == 1:
-						acknowledgement_number = int(temp_sequences[0])
-					else:
-						unacknowledged_sequences.remove(int(seq))
-						acknowledgement_number = int(unacknowledged_sequences[0])
-			else:
-				acknowledgement_number = int(seq)
-	else:
-		# Else handles the case when a packet is lost. In such case, the sequence number of last continuous packet received is sent
-		acknowledgement_number = int(pointer[0] - 1)
-		# Checks if current sequence number is higher than the highest sequence number already received? Updates if it is
-		if int(seq) > int(highest_cumulative_sequence):
-			highest_cumulative_sequence = seq
+	  	for i in range(1, RWND+1):
+	  		if received_sequences[i] == 0:
+	  			acknowledgement_number = i-1
+
+	# Handling the Issue with Sequence Numbers
+	except BaseException:
+
+		exception_flag = True
+		acknowledgement_number = -1
+		print("Sequence Number Exception!")
 	
 	# Sends the acknowledgement to the sender
-	print("Sending Acknowledgement #", acknowledgement_number)
-	sent_acknowledgements.append(int(acknowledgement_number))
-	sock.sendto(str(acknowledgement_number).encode(), sender_address)
+	finally:
 	
-	# Updating the received sequences
-	received_sequences.append(int(seq))
-
-	# Removing the received sequence number from pointer list
-	if int(seq) in pointer:
-		pointer.remove(int(seq))
+		print("Sending Acknowledgement #", acknowledgement_number)
+		receiver_socket.sendto(str(acknowledgement_number).encode(), sender_address)
 	
-	# Terminates further receiving if the RWND is reached
-	if len(pointer) == 0:
-		break
