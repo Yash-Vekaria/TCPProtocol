@@ -12,8 +12,8 @@ sudo sysctl -w net.ipv4.tcp_congestion_control=cubic
 # ref: https://man7.org/linux/man-pages/man8/tc-tbf.8.html
 sudo tc qdisc add dev lo root handle 1: tbf rate 1000kbit buffer 10000000 limit 500000000 peakrate 1001kbit minburst 1550
 
-# delay packets from a uniform distribution with 100ms +- 10ms (i.e., 90ms-110ms) using netem (network emulation)
-sudo tc qdisc add dev lo parent 1:1 handle 10: netem delay 100ms 10ms
+# loose 0.5% packets randomly and delay packets from a uniform distribution with 100ms +- 10ms (i.e., 90ms-110ms) using netem (network emulation)
+sudo tc qdisc add dev lo parent 1:1 handle 10: netem delay 100ms 10ms loss 0.5%
 
 echo "entering loop"
 while :
