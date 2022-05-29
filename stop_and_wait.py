@@ -96,7 +96,6 @@ def receive_acknowledgement(sockt):
 	global ACKNOWLEDGED_SEQUENCES;
 	global PER_PKT_RTT;
 	global BUFFER_SIZE;
-	global LOST;
 
 	consecutive_receive_timeouts = 3
 	current_timeouts = 0
