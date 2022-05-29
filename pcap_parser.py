@@ -17,6 +17,29 @@ PER_PKT_THROUGHPUT = [0] * (NUM_PKTS + 1)
 
 
 
+def compute_overall_metrics():
+	"""
+		Computes the Overall Performance based metrics using just timestamps of 1st and last packet
+	"""
+	
+	global NUM_PKTS;
+	global SEND_TIMES;
+	global RECEIVE_TIMES;
+	global PER_PKT_LENGTHS;
+	global PER_PKT_DELAY;
+	global PER_PKT_THROUGHPUT;
+
+	total_delay = float(RECEIVE_TIMES[NUM_PKTS]) - float(SEND_TIMES[1])
+	avg_delay = (total_delay * 1000) / (NUM_PKTS)
+	avg_throughput = (sum(PER_PKT_LENGTHS) * 8) / (total_delay)
+	performance_metric = math.log(avg_throughput, 10) - math.log(avg_delay, 10)
+
+	print ("Overall Average Throughput:", avg_throughput, "bits per second")
+	print ("Overall Average Delay:", avg_delay, "milliseconds")
+	print ("OverallPerformance:", performance_metric)
+
+
+
 
 def compute_metrics():
 	"""
@@ -30,7 +53,7 @@ def compute_metrics():
 	global PER_PKT_DELAY;
 	global PER_PKT_THROUGHPUT;
 
-	for seq in range(1, 1831):
+	for seq in range(1, NUM_PKTS+1):
 		PER_PKT_DELAY[seq] = float(RECEIVE_TIMES[seq]) - float(SEND_TIMES[seq])
 		PER_PKT_THROUGHPUT[seq] = (PER_PKT_LENGTHS[seq] * 8) / PER_PKT_DELAY[seq]
 
@@ -151,11 +174,13 @@ def main(pcap):
 						RECEIVE_TIMES[seq] = ts
 
 	compute_metrics()
+	print()
+	compute_overall_metrics()
 
 
 if __name__ == '__main__':
 
-	f = open('test.pcap', 'rb')
+	f = open('test2.pcap', 'rb')
 	packets_captured = dpkt.pcap.Reader(f)
 	print("\nPCAP File successfully read!\n")
 	
