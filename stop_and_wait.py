@@ -35,8 +35,10 @@ def generate_plots():
 	import matplotlib.pyplot as plt
 	
 	packet_sequence = list(range(1, NUM_PKTS+1))
+
+	PER_PKT_DELAY = [PER_PKT_RTT[seq]*1000 for seq in range(1, NUM_PKTS+1)]
    
-	plt.plot(packet_sequence, PER_PKT_RTT*1000)
+	plt.plot(packet_sequence, PER_PKT_DELAY)
 	plt.title('Per-packet Delays')
 	plt.xlabel('Packet Sequence Numbers')
 	plt.ylabel('Packet Delays')
