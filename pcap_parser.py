@@ -37,6 +37,39 @@ def compute_overall_metrics():
 	print ("Overall Average Throughput:", avg_throughput, "bits per second")
 	print ("Overall Average Delay:", avg_delay, "milliseconds")
 	print ("OverallPerformance:", performance_metric)
+	
+	
+
+def compute_adjusted_metrics():
+	"""
+		Computes the Performance based metrics by multiplying delay with 2.
+		This is done to account for the time taken by acknowledgement to reach sender.
+	"""
+	
+	global NUM_PKTS;
+	global SEND_TIMES;
+	global RECEIVE_TIMES;
+	global PER_PKT_LENGTHS;
+	global PER_PKT_DELAY;
+	global PER_PKT_THROUGHPUT;
+	TEMP = [0] * (NUM_PKTS + 1)
+
+	for seq in range(1, NUM_PKTS+1):
+		PER_PKT_DELAY[seq] = float(RECEIVE_TIMES[seq]) - float(SEND_TIMES[seq])
+		TEMP[seq] = (PER_PKT_LENGTHS[seq] * 8) / (PER_PKT_DELAY[seq] * 2)
+		PER_PKT_THROUGHPUT[seq] = (PER_PKT_LENGTHS[seq] * 8) / PER_PKT_DELAY[seq]
+
+	avg_delay = (sum(PER_PKT_DELAY) / len(PER_PKT_DELAY)) * 2000
+	avg_throughput1 = (sum(PER_PKT_THROUGHPUT) / len(PER_PKT_THROUGHPUT)) / 2
+	avg_throughput2 = sum(TEMP) / len(PER_PKT_THROUGHPUT)
+	performance_metric1 = math.log(avg_throughput1, 10) - math.log(avg_delay, 10)
+	performance_metric2 = math.log(avg_throughput2, 10) - math.log(avg_delay, 10)
+
+	print ("Average Throughput 1 (/2):", avg_throughput, "bits per second")
+	print ("Average Throughput 2:", avg_throughput, "bits per second")
+	print ("Average Delay:", avg_delay, "milliseconds")
+	print ("Performance 1:", performance_metric1)
+	print ("Performance 2:", performance_metric2)
 
 
 
@@ -173,9 +206,11 @@ def main(pcap):
 					if RECEIVE_TIMES[seq] == 0:
 						RECEIVE_TIMES[seq] = ts
 
-	compute_metrics()
+	# compute_metrics()
+	# print()
+	# compute_overall_metrics()
 	print()
-	compute_overall_metrics()
+	compute_adjusted_metrics
 
 
 if __name__ == '__main__':
