@@ -28,6 +28,29 @@ print("Sender is ready to send the file %s" % FILENAME)
 print("Number of Packets to send:", NUM_PKTS)
 
 
+def generate_plots():
+	global NUM_PKTS;
+	global PER_PKT_RTT;
+	global PER_PKT_THROUGHPUT;
+	import matplotlib.pyplot as plt
+	
+	packet_sequence = list(range(1, NUM_PKTS+1))
+   
+	plt.plot(packet_sequence, PER_PKT_RTT*1000)
+	plt.title('Per-packet Delays')
+	plt.xlabel('Packet Sequence Numbers')
+	plt.ylabel('Packet Delays')
+	plt.savefig('stop_and_wait_delay.png')
+	plt.show()
+	
+	plt.plot(packet_sequence, PER_PKT_THROUGHPUT)
+	plt.title('Per-packet Throughputs')
+	plt.xlabel('Packet Sequence Numbers')
+	plt.ylabel('Packet Throughputs')
+	plt.savefig('stop_and_wait_throughput.png')
+	plt.show()
+
+
 
 def generate_packets():
 	global FILENAME;
@@ -140,5 +163,7 @@ print("Average Throughput:", AVERAGE_THROUGHPUT," bps (bits per second)")
 print("Average Delay:", AVERAGE_DELAY," ms (milliseconds)")
 print("Performance:", math.log(AVERAGE_THROUGHPUT,10) - math.log(AVERAGE_DELAY,10))
 print("Packet Loss:", "Count =", LOST, "; PERCENT =", round((float(LOST)/2409)*100, 3))
+
+generate_plots()
  
 sock.close()
